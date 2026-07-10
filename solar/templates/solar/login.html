@@ -15,7 +15,7 @@
             </p>
         </div>
         
-        <form class="mt-8 space-y-6" action="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" method="POST" x-data="{ isSubmitting: false }" @submit="isSubmitting = true">
+        <form class="mt-8 space-y-6" action="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" method="POST" autocomplete="off" x-data="{ isSubmitting: false }" @submit="isSubmitting = true">
             {% csrf_token %}
             
             {% if form.non_field_errors %}
@@ -32,12 +32,13 @@
                         <p class="text-red-400 text-xs mt-1">{{ form.mobile_number.errors.0 }}</p>
                     {% endif %}
                 </div>
-                <div x-data="{ showPassword: false }">
+                <div x-data="{ show: false }">
                     <label for="{{ form.password.id_for_label }}" class="sr-only">Password</label>
-                    <div class="relative">
+                    <div class="relative" x-ref="pwWrapper" x-effect="$refs.pwWrapper.querySelector('input').type = show ? 'text' : 'password'">
                         {{ form.password }}
-                        <button type="button" @click="showPassword = !showPassword; $el.previousElementSibling.type = showPassword ? 'text' : 'password'" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-white focus:outline-none">
-                            <i class="fa-solid" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors outline-none focus:outline-none">
+                            <i class="fa-solid fa-eye" x-show="!show"></i>
+                            <i class="fa-solid fa-eye-slash" x-show="show" x-cloak></i>
                         </button>
                     </div>
                     {% if form.password.errors %}
@@ -55,7 +56,7 @@
                 </div>
 
                 <div class="text-sm">
-                    <a href="#" @click.prevent="let m = document.getElementById('{{ form.mobile_number.id_for_label }}').value; window.location.href = '{% url 'password_reset' %}' + (m ? '?mobile=' + encodeURIComponent(m) : '');" class="font-medium text-blue-400 hover:text-blue-300 transition-colors">
+                    <a href="#" class="font-medium text-blue-400 hover:text-blue-300 transition-colors">
                         Forgot your password?
                     </a>
                 </div>
@@ -73,7 +74,58 @@
                     <span x-show="isSubmitting" x-cloak>Logging in...</span>
                 </button>
             </div>
+            
+            <div class="relative mt-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-700"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-gray-900 text-gray-400 rounded-full">Or continue with</span>
+                </div>
+            </div>
+
+            <div class="flex justify-center mt-6 w-full">
+                <div id="g_id_onload"
+                     data-client_id="423291021967-ggr5ppsfph3ghq3824rq0mb48vvkb088.apps.googleusercontent.com"
+                     data-callback="handleGoogleLogin">
+                </div>
+                <div class="g_id_signin w-full flex justify-center hover:scale-105 transition-transform"
+                     data-type="standard" 
+                     data-shape="pill" 
+                     data-theme="filled_black" 
+                     data-text="signin_with"
+                     data-size="large" 
+                     data-logo_alignment="left"
+                     data-width="320">
+                </div>
+            </div>
         </form>
     </div>
 </div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+function handleGoogleLogin(response) {
+    fetch("{% url 'google_login' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ credential: response.credential })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect_url;
+        } else {
+            alert("Google Login failed: " + data.error);
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("An error occurred during Google Login.");
+    });
+}
+</script>
 {% endblock %}

@@ -112,6 +112,8 @@ else:
         }
     }
 
+# Required for Google Identity Services (Sign-in popup) to work correctly
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
