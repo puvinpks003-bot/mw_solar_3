@@ -15,7 +15,7 @@
             </p>
         </div>
         
-        <form class="mt-8 space-y-6" action="{% url 'signup' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" method="POST" x-data="{ isSubmitting: false }" @submit="localStorage.setItem('signup_email', document.getElementById('id_email').value); isSubmitting = true">
+        <form class="mt-8 space-y-6" action="{% url 'signup' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" method="POST" autocomplete="off" x-data="{ isSubmitting: false }" @submit="isSubmitting = true">
             {% csrf_token %}
             
             {% if form.non_field_errors %}
@@ -46,24 +46,26 @@
                         <p class="text-red-400 text-xs mt-1">{{ form.email.errors.0 }}</p>
                     {% endif %}
                 </div>
-                <div x-data="{ showPassword: false }">
+                <div x-data="{ show: false }">
                     <label for="{{ form.password.id_for_label }}" class="sr-only">Password</label>
-                    <div class="relative">
+                    <div class="relative" x-ref="pwWrapper" x-effect="$refs.pwWrapper.querySelector('input').type = show ? 'text' : 'password'">
                         {{ form.password }}
-                        <button type="button" @click="showPassword = !showPassword; $el.previousElementSibling.type = showPassword ? 'text' : 'password'" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-white focus:outline-none">
-                            <i class="fa-solid" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors outline-none focus:outline-none">
+                            <i class="fa-solid fa-eye" x-show="!show"></i>
+                            <i class="fa-solid fa-eye-slash" x-show="show" x-cloak></i>
                         </button>
                     </div>
                     {% if form.password.errors %}
                         <p class="text-red-400 text-xs mt-1">{{ form.password.errors.0 }}</p>
                     {% endif %}
                 </div>
-                <div x-data="{ showConfirmPassword: false }">
+                <div x-data="{ showConfirm: false }">
                     <label for="{{ form.confirm_password.id_for_label }}" class="sr-only">Confirm Password</label>
-                    <div class="relative">
+                    <div class="relative" x-ref="confirmWrapper" x-effect="$refs.confirmWrapper.querySelector('input').type = showConfirm ? 'text' : 'password'">
                         {{ form.confirm_password }}
-                        <button type="button" @click="showConfirmPassword = !showConfirmPassword; $el.previousElementSibling.type = showConfirmPassword ? 'text' : 'password'" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-white focus:outline-none">
-                            <i class="fa-solid" :class="showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        <button type="button" @click="showConfirm = !showConfirm" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors outline-none focus:outline-none">
+                            <i class="fa-solid fa-eye" x-show="!showConfirm"></i>
+                            <i class="fa-solid fa-eye-slash" x-show="showConfirm" x-cloak></i>
                         </button>
                     </div>
                     {% if form.confirm_password.errors %}

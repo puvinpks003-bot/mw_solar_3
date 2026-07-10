@@ -6,3 +6,6 @@ dj-database-url
 psycopg2-binary
 whitenoise
 python-dotenv
+google-auth>=2.27.0
+requests>=2.31.0
+

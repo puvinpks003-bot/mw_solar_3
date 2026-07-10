@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.landing_view, name='landing'),
     path('signup/', views.signup_view, name='signup'),
     path('login/', views.login_view, name='login'),
+    path('google-login/', views.google_login_view, name='google_login'),
     path('logout/', views.logout_view, name='logout'),
     
     # Password Reset URLs
