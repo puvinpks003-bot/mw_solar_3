@@ -82,15 +82,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 database_url = os.getenv("DATABASE_URL", "").strip().strip("'").strip('"')
-print('database_url : ',database_url)
 if database_url:
     tmpPostgres = urlparse(database_url)
-    
-    print('hostname :',tmpPostgres.hostname)
-    print('password :',tmpPostgres.password)
-    print('username :',tmpPostgres.username)
-    print('path :',tmpPostgres.path)
-    print('query :',tmpPostgres.query)
     
     DATABASES = {
         'default': {
@@ -178,9 +171,12 @@ if env_path.exists():
             line = line.strip()
             if line and not line.startswith('#') and '=' in line:
                 key, value = line.split('=', 1)
-                os.environ[key.strip()] = value.strip()
+                os.environ[key.strip()] = value.strip().strip("'").strip('"')
 
-# Email Configuration (Demo Mode: saves emails to a local folder)
-EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = BASE_DIR / 'emails'
-DEFAULT_FROM_EMAIL = 'MW Solar <no-reply@mwsolar.com>'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'puvinsipinfra@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'puvinsipinfra@gmail.com')

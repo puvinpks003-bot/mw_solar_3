@@ -23,40 +23,65 @@ from google.auth.transport import requests as google_requests
 def landing_view(request):
     return render(request, 'solar/landing.html')
 
-from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.conf import settings
 from .models import CustomUser
 
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.utils.encoding import force_bytes
+
 def password_reset_request_view(request):
-    initial = {}
-    mobile = request.GET.get('mobile')
-    print(' Mobile number from GET parameter:', mobile)
-    if mobile:
-        try:
-            user = CustomUser.objects.get(mobile_number=mobile)
-            initial['email'] = user.email
-            print(' User found for mobile number:', user.email)
-        except CustomUser.DoesNotExist:
-            print(' No user found for mobile number:', mobile)
-            pass
-            
     if request.method == "POST":
-        form = PasswordResetForm(request.POST)
-        if form.is_valid():
-            form.save(
-                request=request,
-                use_https=request.is_secure(),
+        email = request.POST.get('email', '').strip()
+        if not email:
+            messages.error(request, 'Please enter a valid email address.')
+            return redirect('password_reset')
+            
+        user = CustomUser.objects.filter(email__iexact=email, is_active=True).first()
+        if user is None:
+            messages.error(request, 'No account found with this email.')
+            return redirect('password_reset')
+            
+        # Generate token
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        
+        # Prepare email context
+        domain = request.get_host()
+        protocol = 'https' if request.is_secure() else 'http'
+        context = {
+            'user': user,
+            'protocol': protocol,
+            'domain': domain,
+            'uid': uid,
+            'token': token,
+        }
+        
+        # Render email templates
+        try:
+            html_message = render_to_string('registration/password_reset_email_html.html', context)
+            plain_message = strip_tags(html_message)
+            
+            # Send email
+            send_mail(
+                subject='Reset your password for MW Solar',
+                message=plain_message,
                 from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
-                email_template_name='registration/password_reset_email.html',
-                subject_template_name='registration/password_reset_subject.txt',
+                recipient_list=[user.email],
+                html_message=html_message,
+                fail_silently=False,
             )
             return redirect('password_reset_done')
-    else:
-        form = PasswordResetForm(initial=initial)
-        
-    return render(request, 'registration/password_reset_form.html', {'form': form})
+        except Exception as e:
+            messages.error(request, f'Failed to send email: {e}')
+            return redirect('password_reset')
+            
+    return render(request, 'registration/password_reset_form.html')
 
 def password_reset_done_view(request):
     return render(request, 'registration/password_reset_done.html')
