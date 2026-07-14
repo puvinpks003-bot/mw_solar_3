@@ -180,3 +180,12 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'puvinsipinfra@gmail.com')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'puvinsipinfra@gmail.com')
+
+# Set session timeout to 10 minutes (600 seconds)
+SESSION_COOKIE_AGE = 600 
+
+# Refresh the session timeout on every request the user makes
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Optional but recommended: Expire the session when the user closes their browser
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
