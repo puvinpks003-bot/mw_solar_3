@@ -298,6 +298,29 @@
             }
         });
     </script>
+    <script>
+        let inactivityTimeout;
+
+        function resetInactivityTimer() {
+            // Clear the previous timer
+            clearTimeout(inactivityTimeout);
+            
+            // Set a new timer for 10 minutes (600,000 milliseconds)
+            inactivityTimeout = setTimeout(() => {
+                // Redirect to your logout URL or login page
+                // Make sure the URL name matches your urls.py (e.g., 'logout' or 'login')
+                window.location.href = "{% url 'logout' %}"; 
+            }, 600000); 
+        }
+
+        // Reset the timer whenever the user interacts with the page
+        window.onload = resetInactivityTimer;
+        document.onmousemove = resetInactivityTimer;
+        document.onkeypress = resetInactivityTimer;
+        document.onclick = resetInactivityTimer;
+        document.onscroll = resetInactivityTimer;
+    </script>
     {% block extra_scripts %}{% endblock %}
+
 </body>
 </html>
